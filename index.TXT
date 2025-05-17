@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<!-- saved from url=(0066)file:///C:/Users/Home/Desktop/%D1%81%D0%B0%D0%B9%D1%822/index.html -->
+<html lang="ru"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Журнал оценок с статистикой и графиками</title>
+<style>
+  /* Стили упрощены и адаптированы */
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f5f7fa;
+    margin: 0; padding: 0;
+    color: #333;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  .tab-buttons {
+    display: flex;
+    background-color: #2c3e50;
+  }
+  .tab-buttons button {
+    flex: 1;
+    padding: 14px 0;
+    border: none;
+    background: transparent;
+    color: #ecf0f1;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: background-color 0.3s, color 0.3s;
+  }
+  .tab-buttons button:hover {
+    background-color: #34495e;
+  }
+  .tab-buttons button.active {
+    border-bottom: 3px solid #e67e22;
+    color: #e67e22;
+    background-color: #34495e;
+  }
+  .tab {
+    display: none;
+    max-width: 960px;
+    margin: 20px auto 40px;
+    background: white;
+    padding: 25px 30px;
+    border-radius: 10px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+  }
+  .tab.active-tab {
+    display: block;
+  }
+  h3 {
+    margin-top: 0;
+    color: #2c3e50;
+    font-weight: 700;
+  }
+  button.action-btn {
+    background-color: #e67e22;
+    border: none;
+    color: white;
+    padding: 12px 20px;
+    margin: 8px 8px 8px 0;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    user-select: none;
+  }
+  button.action-btn:hover {
+    background-color: #d35400;
+  }
+  input[type="text"], input[type="number"], input[type="file"], select {
+    padding: 10px 12px;
+    margin: 8px 12px 16px 0;
+    border: 1.8px solid #ccc;
+    border-radius: 6px;
+    font-size: 1rem;
+    width: 220px;
+    transition: border-color 0.3s;
+  }
+  input[type="text"]:focus, input[type="number"]:focus, input[type="file"]:focus, select:focus {
+    border-color: #e67e22;
+    outline: none;
+  }
+  label {
+    font-weight: 600;
+    margin-right: 6px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    font-size: 0.95rem;
+  }
+  th, td {
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    text-align: left;
+  }
+  th {
+    background-color: #e67e22;
+    color: white;
+    font-weight: 700;
+  }
+  tr:nth-child(even) {
+    background-color: #f9f9f9;
+  }
+  tr:hover {
+    background-color: #ffe6cc;
+  }
+  .table-btn {
+    background: #3498db;
+    border: none;
+    color: white;
+    padding: 6px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    margin-right: 6px;
+    transition: background-color 0.3s;
+  }
+  .table-btn:hover {
+    background: #2980b9;
+  }
+  .table-btn.delete {
+    background: #e74c3c;
+  }
+  .table-btn.delete:hover {
+    background: #c0392b;
+  }
+  #help p, #about p {
+    line-height: 1.5;
+    font-size: 1rem;
+  }
+  #about img {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    margin-bottom: 15px;
+  }
+  .chart-container {
+    margin-top: 30px;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    background: #fff;
+  }
+  canvas {
+    max-width: 100%;
+    height: 300px !important;
+  }
+  @media (max-width: 700px) {
+    input[type="text"], input[type="number"], input[type="file"], select {
+      width: 100%;
+      margin-bottom: 12px;
+    }
+    .tab-buttons button {
+      font-size: 0.9rem;
+      padding: 10px 0;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="tab-buttons" role="tablist" aria-label="Навигация по разделам">
+  <button class="active" onclick="showTab(&#39;upload&#39;)" role="tab" aria-selected="true" aria-controls="upload" id="tab-upload">Загрузка оценок</button>
+  <button onclick="showTab(&#39;journal&#39;)" role="tab" aria-selected="false" aria-controls="journal" id="tab-journal">Журнал</button>
+  <button onclick="showTab(&#39;stats&#39;)" role="tab" aria-selected="false" aria-controls="stats" id="tab-stats">Статистика</button>
+  <button onclick="showTab(&#39;charts&#39;)" role="tab" aria-selected="false" aria-controls="charts" id="tab-charts">Графики</button>
+  <button onclick="showTab(&#39;help&#39;)" role="tab" aria-selected="false" aria-controls="help" id="tab-help">Помощь</button>
+  <button onclick="showTab(&#39;about&#39;)" role="tab" aria-selected="false" aria-controls="about" id="tab-about">О программе</button>
+</div>
+
+<!-- Загрузка оценок -->
+<div id="upload" class="tab active-tab" role="tabpanel" aria-labelledby="tab-upload">
+  <h3>Загрузка оценок из файла</h3>
+  <p>Формат файла: <code>ФИО,Класс,Предмет,Оценка</code> (например: Иванов Иван,9А,Математика,5)</p>
+  <input type="file" id="fileInput" accept=".csv,.txt" aria-label="Выберите файл для загрузки оценок (.csv, .txt)">
+  <div id="uploadTable" aria-live="polite" style="margin-top: 20px;"><p>Данные не загружены.</p></div>
+</div>
+
+<!-- Журнал -->
+<div id="journal" class="tab" role="tabpanel" aria-labelledby="tab-journal">
+  <h3>Создание и редактирование журнала</h3>
+  <div>
+    <input type="text" id="fio" placeholder="ФИО ученика" aria-label="ФИО ученика">
+    <input type="text" id="className" placeholder="Класс (например, 9А)" aria-label="Класс ученика">
+    <input type="text" id="subject" placeholder="Предмет (например, Математика)" aria-label="Предмет">
+    <input type="number" id="grade" placeholder="Оценка (1-5)" min="1" max="5" aria-label="Оценка ученика">
+    <button class="action-btn" onclick="addOrUpdateStudent()">Добавить / Обновить</button>
+    <button class="action-btn" onclick="downloadJournalTXT()">Скачать TXT</button>
+    <button class="action-btn" onclick="downloadJournalCSV()">Скачать CSV</button>
+    <button class="action-btn" onclick="downloadJournalXLSX()">Скачать XLSX</button>
+  </div>
+  <div>
+    <label for="filterClass">Фильтр по классу:</label>
+    <select id="filterClass" onchange="renderJournalTable()"><option value="all">Все классы</option></select>
+    <label for="filterSubject">Фильтр по предмету:</label>
+    <select id="filterSubject" onchange="renderJournalTable()"><option value="all">Все предметы</option></select>
+  </div>
+  <div id="journalTable" aria-live="polite" style="margin-top: 20px;"><p>Записи не найдены.</p></div>
+</div>
+
+<!-- Статистика -->
+<div id="stats" class="tab" role="tabpanel" aria-labelledby="tab-stats">
+  <h3>Статистика в табличном виде</h3>
+  <div>
+    <label for="statsClass">Выберите класс:</label>
+    <select id="statsClass" onchange="renderStats()"><option value="all">Все классы</option></select>
+    <label for="statsSubject">Выберите предмет:</label>
+    <select id="statsSubject" onchange="renderStats()"><option value="all">Все предметы</option></select>
+  </div>
+  <div id="statsOutput" aria-live="polite" style="margin-top: 15px;"></div>
+</div>
+
+<!-- Графики -->
+<div id="charts" class="tab" role="tabpanel" aria-labelledby="tab-charts">
+  <h3>Графики по всем предметам и ученикам</h3>
+  <div id="chartsContainer" style="margin-top:20px;"></div>
+</div>
+
+<!-- Помощь -->
+<div id="help" class="tab" role="tabpanel" aria-labelledby="tab-help">
+  <h3>Помощь</h3>
+  <p><strong>По вопросам, связанным с сайтом, обращаться на почту:</strong> <a href="mailto:alekhan@gmail.com">alekhan@gmail.com</a></p>
+  <p><strong>Загрузка оценок:</strong> Позволяет загрузить оценки из файла. Формат каждой строки: <code>ФИО,Класс,Предмет,Оценка</code>. Оценка - число от 1 до 5.</p>
+  <p><strong>Журнал:</strong> Создавайте, редактируйте и удаляйте записи учеников. Можно сохранить журнал.</p>
+  <p><strong>Статистика:</strong> Выводит таблицу с подсчётом средней оценки, медианы, количеством и процентом оценок по выбранному классу и предмету или по всем.</p>
+  <p><strong>Графики:</strong> Показывает отдельный график для каждого предмета с отображением средней оценки каждого ученика.</p>
+  <p><strong>О программе:</strong> Информация о разработчике и контакты.</p>
+</div>
+
+<!-- О программе -->
+<div id="about" class="tab" role="tabpanel" aria-labelledby="tab-about">
+  <h3>О программе</h3>
+  <img src="./Журнал оценок с статистикой и графиками_files/756adb8647bb23fa271bf7cdc99e8bc3.jpg" alt="Фото разработчика">
+  <p><strong>Разработчик:</strong> А.В.Гречишников</p>
+  <p><strong>Контакты:</strong> <a href="mailto:alekhan@gmail.com">alekhan@gmail.com</a></p>
+</div>
+
+<script src="./Журнал оценок с статистикой и графиками_files/chart.js.Без названия"></script>
+<script>
+  let students = [];
+  let editIndex = -1;
+  let chartInstances = [];
+
+  // --- Навигация по вкладкам ---
+  function showTab(tabId) {
+    document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active-tab'));
+    document.getElementById(tabId).classList.add('active-tab');
+    document.querySelectorAll('.tab-buttons button').forEach(btn => {
+      btn.classList.remove('active');
+      btn.setAttribute('aria-selected', 'false');
+    });
+    const activeBtn = document.querySelector(`.tab-buttons button[onclick="showTab('${tabId}')"]`);
+    if(activeBtn) {
+      activeBtn.classList.add('active');
+      activeBtn.setAttribute('aria-selected', 'true');
+      activeBtn.focus();
+    }
+    if(tabId === 'stats') renderStats();
+    if(tabId === 'charts') renderAllSubjectCharts();
+  }
+
+  // --- Вспомогательные функции ---
+  function escapeHTML(str) {
+    return String(str).replace(/[&<>"']/g, function(m) {
+      return ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      })[m];
+    });
+  }
+
+  // Парсим CSV или TXT с оценками
+  function parseCSV(text) {
+    const lines = text.trim().split(/\r?\n/);
+    const data = [];
+    for(let line of lines) {
+      const parts = line.split(',');
+      if(parts.length >= 4) {
+        const fio = parts[0].trim();
+        const className = parts[1].trim();
+        const subject = parts[2].trim();
+        const grade = parseInt(parts[3].trim());
+        if(fio && className && subject && !isNaN(grade) && grade >= 1 && grade <= 5) {
+          data.push({fio, className, subject, grade});
+        }
+      }
+    }
+    return data;
+  }
+
+  // Загрузка файла
+  document.getElementById('fileInput').addEventListener('change', e => {
+    const file = e.target.files[0];
+    if(!file) return;
+    const ext = file.name.split('.').pop().toLowerCase();
+    if(!['csv','txt'].includes(ext)) {
+      alert('Поддерживаются только файлы .csv и .txt');
+      e.target.value = '';
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = evt => {
+      try {
+        const data = parseCSV(evt.target.result);
+        if(data.length === 0) {
+          alert('Файл пустой или содержит некорректные данные.');
+          return;
+        }
+        students = [];
+        data.forEach(rec => {
+          const existing = students.find(s => s.fio === rec.fio && s.className === rec.className && s.subject === rec.subject);
+          if(existing) {
+            existing.grade = rec.grade;
+          } else {
+            students.push({...rec});
+          }
+        });
+        editIndex = -1;
+        updateFilters();
+        renderUploadTable();
+        renderJournalTable();
+        alert('Данные успешно загружены!');
+      } catch {
+        alert('Ошибка при чтении файла.');
+      }
+    };
+    reader.readAsText(file);
+  });
+
+  // Обновление списков фильтров и селектов
+  function updateFilters() {
+    const classes = Array.from(new Set(students.map(s => s.className))).sort();
+    const subjects = Array.from(new Set(students.map(s => s.subject))).sort();
+
+    ['filterClass','statsClass'].forEach(id => {
+      const select = document.getElementById(id);
+      if(!select) return;
+      const currentValue = select.value;
+      select.innerHTML = '<option value="all">Все классы</option>';
+      classes.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c;
+        opt.textContent = c;
+        select.appendChild(opt);
+      });
+      if(classes.includes(currentValue)) select.value = currentValue;
+    });
+
+    ['filterSubject','statsSubject'].forEach(id => {
+      const select = document.getElementById(id);
+      if(!select) return;
+      const currentValue = select.value;
+      select.innerHTML = '<option value="all">Все предметы</option>';
+      subjects.forEach(subj => {
+        const opt = document.createElement('option');
+        opt.value = subj;
+        opt.textContent = subj;
+        select.appendChild(opt);
+      });
+      if(subjects.includes(currentValue)) select.value = currentValue;
+    });
+  }
+
+  // Отрисовка таблицы загруженных оценок
+  function renderUploadTable() {
+    if(students.length === 0) {
+      document.getElementById('uploadTable').innerHTML = '<p>Данные не загружены.</p>';
+      return;
+    }
+    let html = `<table aria-label="Таблица загруженных оценок"><thead><tr><th>ФИО</th><th>Класс</th><th>Предмет</th><th>Оценка</th></tr></thead><tbody>`;
+    for(let s of students) {
+      html += `<tr><td>${escapeHTML(s.fio)}</td><td>${escapeHTML(s.className)}</td><td>${escapeHTML(s.subject)}</td><td>${s.grade}</td></tr>`;
+    }
+    html += '</tbody></table>';
+    document.getElementById('uploadTable').innerHTML = html;
+  }
+
+  // Отрисовка таблицы журнала с фильтрами
+  function renderJournalTable() {
+    const filterClass = document.getElementById('filterClass').value;
+    const filterSubject = document.getElementById('filterSubject').value;
+    let filtered = students;
+    if(filterClass !== 'all') filtered = filtered.filter(s => s.className === filterClass);
+    if(filterSubject !== 'all') filtered = filtered.filter(s => s.subject === filterSubject);
+    if(filtered.length === 0) {
+      document.getElementById('journalTable').innerHTML = '<p>Записи не найдены.</p>';
+      return;
+    }
+    let html = `<table aria-label="Таблица журнала оценок"><thead><tr><th>ФИО</th><th>Класс</th><th>Предмет</th><th>Оценка</th><th>Действия</th></tr></thead><tbody>`;
+    filtered.forEach((s) => {
+      const realIndex = students.indexOf(s);
+      html += `<tr>
+        <td>${escapeHTML(s.fio)}</td>
+        <td>${escapeHTML(s.className)}</td>
+        <td>${escapeHTML(s.subject)}</td>
+        <td>${s.grade}</td>
+        <td>
+          <button class="table-btn" aria-label="Редактировать ${escapeHTML(s.fio)}" onclick="editStudent(${realIndex})">✎</button>
+          <button class="table-btn delete" aria-label="Удалить ${escapeHTML(s.fio)}" onclick="deleteStudent(${realIndex})">🗑</button>
+        </td>
+      </tr>`;
+    });
+    html += '</tbody></table>';
+    document.getElementById('journalTable').innerHTML = html;
+  }
+
+  // Добавление или обновление записи
+  function addOrUpdateStudent() {
+    const fioInput = document.getElementById('fio');
+    const classInput = document.getElementById('className');
+    const subjectInput = document.getElementById('subject');
+    const gradeInput = document.getElementById('grade');
+    const fio = fioInput.value.trim();
+    const className = classInput.value.trim();
+    const subject = subjectInput.value.trim();
+    const grade = parseInt(gradeInput.value);
+    if(fio.length < 3) {
+      alert('Введите корректное ФИО (не менее 3 символов).');
+      fioInput.focus();
+      return;
+    }
+    if(className.length < 1) {
+      alert('Введите класс ученика.');
+      classInput.focus();
+      return;
+    }
+    if(subject.length < 1) {
+      alert('Введите предмет.');
+      subjectInput.focus();
+      return;
+    }
+    if(isNaN(grade) || grade < 1 || grade > 5) {
+      alert('Оценка должна быть числом от 1 до 5.');
+      gradeInput.focus();
+      return;
+    }
+    if(editIndex >= 0) {
+      students[editIndex] = {fio, className, subject, grade};
+      editIndex = -1;
+    } else {
+      students.push({fio, className, subject, grade});
+    }
+    fioInput.value = '';
+    classInput.value = '';
+    subjectInput.value = '';
+    gradeInput.value = '';
+    updateFilters();
+    renderJournalTable();
+    renderUploadTable();
+    alert('Запись успешно сохранена!');
+  }
+
+  // Редактирование записи
+  function editStudent(index) {
+    if(index < 0 || index >= students.length) return;
+    editIndex = index;
+    const student = students[index];
+    document.getElementById('fio').value = student.fio;
+    document.getElementById('className').value = student.className;
+    document.getElementById('subject').value = student.subject;
+    document.getElementById('grade').value = student.grade;
+  }
+
+  // Удаление записи
+  function deleteStudent(index) {
+    if(index < 0 || index >= students.length) return;
+    if(confirm('Удалить запись?')) {
+      students.splice(index, 1);
+      editIndex = -1;
+      updateFilters();
+      renderJournalTable();
+      renderUploadTable();
+    }
+  }
+
+  // --- Функции для скачивания журнала ---
+  function downloadJournalTXT() {
+    if(students.length === 0) {
+      alert('Журнал пуст!');
+      return;
+    }
+    let lines = ['ФИО | Класс | Предмет | Оценка'];
+    for(let s of students) {
+      lines.push(`${s.fio} | ${s.className} | ${s.subject} | ${s.grade}`);
+    }
+    const content = lines.join('\n');
+    downloadFile('journal.txt', content, 'text/plain;charset=utf-8');
+  }
+
+  function downloadJournalCSV() {
+    if(students.length === 0) {
+      alert('Журнал пуст!');
+      return;
+    }
+    let csv = 'ФИО,Класс,Предмет,Оценка\n';
+    for(let s of students) {
+      let fio = `"${s.fio.replace(/"/g, '""')}"`;
+      let className = `"${s.className.replace(/"/g, '""')}"`;
+      let subject = `"${s.subject.replace(/"/g, '""')}"`;
+      csv += `${fio},${className},${subject},${s.grade}\n`;
+    }
+    downloadFile('journal.csv', csv, 'text/csv;charset=utf-8');
+  }
+
+  function downloadJournalXLSX() {
+    if(students.length === 0) {
+      alert('Журнал пуст!');
+      return;
+    }
+    let xml = `<?xml version="1.0"?>
+    <Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+      xmlns:o="urn:schemas-microsoft-com:office:office"
+      xmlns:x="urn:schemas-microsoft-com:office:excel"
+      xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
+      <Worksheet ss:Name="Журнал">
+        <Table>
+          <Row>
+            <Cell><Data ss:Type="String">ФИО</Data></Cell>
+            <Cell><Data ss:Type="String">Класс</Data></Cell>
+            <Cell><Data ss:Type="String">Предмет</Data></Cell>
+            <Cell><Data ss:Type="String">Оценка</Data></Cell>
+          </Row>`;
+    for(let s of students) {
+      xml += `<Row>
+        <Cell><Data ss:Type="String">${s.fio}</Data></Cell>
+        <Cell><Data ss:Type="String">${s.className}</Data></Cell>
+        <Cell><Data ss:Type="String">${s.subject}</Data></Cell>
+        <Cell><Data ss:Type="Number">${s.grade}</Data></Cell>
+      </Row>`;
+    }
+    xml += `
+        </Table>
+      </Worksheet>
+    </Workbook>`;
+    downloadFile('journal.xls', xml, 'application/vnd.ms-excel;charset=utf-8');
+  }
+
+  function downloadFile(filename, content, mimeType) {
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  // --- Статистика ---
+
+  // Вычисление медианы
+  function median(values) {
+    if(values.length === 0) return 0;
+    values.sort((a,b) => a - b);
+    const mid = Math.floor(values.length / 2);
+    if(values.length % 2 === 0) {
+      return (values[mid - 1] + values[mid]) / 2;
+    } else {
+      return values[mid];
+    }
+  }
+
+  // Получить статистику по массиву оценок
+  // Возвращает объект с avg, median, counts {1: n, 2: n, ...}, percents {1: %, ...}
+  function getStats(grades) {
+    if(grades.length === 0) return null;
+    const counts = {1:0,2:0,3:0,4:0,5:0};
+    grades.forEach(g => {
+      if(counts[g] !== undefined) counts[g]++;
+    });
+    const total = grades.length;
+    const avg = grades.reduce((a,b) => a+b,0) / total;
+    const med = median(grades);
+    const percents = {};
+    for(let i=1; i<=5; i++) {
+      percents[i] = ((counts[i]/total)*100).toFixed(1);
+    }
+    return {avg: avg.toFixed(2), median: med, counts, percents};
+  }
+
+  // Рендер таблицы статистики
+  function renderStatsTable(stats, title) {
+    if(!stats) return `<p>Нет данных для статистики.</p>`;
+    let html = `<h4>${escapeHTML(title)}</h4>`;
+    html += `<table aria-label="${escapeHTML(title)}">
+      <thead>
+        <tr>
+          <th>Оценка</th><th>Количество</th><th>Процент (%)</th>
+        </tr>
+      </thead>
+      <tbody>`;
+    for(let i=1; i<=5; i++) {
+      html += `<tr>
+        <td>${i}</td>
+        <td>${stats.counts[i]}</td>
+        <td>${stats.percents[i]}</td>
+      </tr>`;
+    }
+    html += `</tbody>
+      <tfoot>
+        <tr><td><strong>Средняя</strong></td><td colspan="2">${stats.avg}</td></tr>
+        <tr><td><strong>Медиана</strong></td><td colspan="2">${stats.median}</td></tr>
+      </tfoot>
+    </table>`;
+    return html;
+  }
+
+  // Рендер статистики по выбранным фильтрам
+  function renderStats() {
+    const statsClass = document.getElementById('statsClass').value;
+    const statsSubject = document.getElementById('statsSubject').value;
+    const output = document.getElementById('statsOutput');
+    if(students.length === 0) {
+      output.innerHTML = '<p>Данные отсутствуют.</p>';
+      return;
+    }
+
+    // Фильтруем данные по классу и предмету
+    let filtered = students;
+    if(statsClass !== 'all') filtered = filtered.filter(s => s.className === statsClass);
+    if(statsSubject !== 'all') filtered = filtered.filter(s => s.subject === statsSubject);
+
+    if(filtered.length === 0) {
+      output.innerHTML = '<p>Нет данных для выбранных фильтров.</p>';
+      return;
+    }
+
+    // Если выбран класс и предмет - показываем статистику по этим данным
+    if(statsClass !== 'all' && statsSubject !== 'all') {
+      const grades = filtered.map(s => s.grade);
+      const stats = getStats(grades);
+      output.innerHTML = renderStatsTable(stats, `Статистика для класса ${statsClass} по предмету ${statsSubject}`);
+      return;
+    }
+
+    // Если выбран класс, но предмет "все"
+    if(statsClass !== 'all' && statsSubject === 'all') {
+      // Для каждого предмета в этом классе выводим статистику
+      const subjects = Array.from(new Set(filtered.map(s => s.subject))).sort();
+      if(subjects.length === 0) {
+        output.innerHTML = '<p>Нет данных для выбранного класса.</p>';
+        return;
+      }
+      let html = '';
+      subjects.forEach(subj => {
+        const grades = filtered.filter(s => s.subject === subj).map(s => s.grade);
+        const stats = getStats(grades);
+        html += renderStatsTable(stats, `Класс ${statsClass}, предмет ${subj}`);
+      });
+      output.innerHTML = html;
+      return;
+    }
+
+    // Если выбран предмет, но класс "все"
+    if(statsClass === 'all' && statsSubject !== 'all') {
+      // Для каждого класса выводим статистику по этому предмету
+      const classes = Array.from(new Set(filtered.map(s => s.className))).sort();
+      if(classes.length === 0) {
+        output.innerHTML = '<p>Нет данных для выбранного предмета.</p>';
+        return;
+      }
+      let html = '';
+      classes.forEach(cls => {
+        const grades = filtered.filter(s => s.className === cls).map(s => s.grade);
+        const stats = getStats(grades);
+        html += renderStatsTable(stats, `Предмет ${statsSubject}, класс ${cls}`);
+      });
+      output.innerHTML = html;
+      return;
+    }
+
+    // Если выбраны все классы и все предметы - статистика по каждому предмету по всем классам
+    if(statsClass === 'all' && statsSubject === 'all') {
+      const subjects = Array.from(new Set(students.map(s => s.subject))).sort();
+      if(subjects.length === 0) {
+        output.innerHTML = '<p>Нет данных.</p>';
+        return;
+      }
+      let html = '';
+      subjects.forEach(subj => {
+        const grades = students.filter(s => s.subject === subj).map(s => s.grade);
+        const stats = getStats(grades);
+        html += renderStatsTable(stats, `Предмет ${subj} (все классы)`);
+      });
+      output.innerHTML = html;
+      return;
+    }
+  }
+
+  // --- Графики ---
+
+  // Удаляем старые графики
+  function clearCharts() {
+    chartInstances.forEach(chart => chart.destroy());
+    chartInstances = [];
+    document.getElementById('chartsContainer').innerHTML = '';
+  }
+
+  // Рендерим графики для каждого предмета
+  function renderAllSubjectCharts() {
+    clearCharts();
+    if(students.length === 0) {
+      document.getElementById('chartsContainer').innerHTML = '<p>Данные отсутствуют.</p>';
+      return;
+    }
+    // Получаем список предметов
+    const subjects = Array.from(new Set(students.map(s => s.subject))).sort();
+    if(subjects.length === 0) {
+      document.getElementById('chartsContainer').innerHTML = '<p>Нет данных для построения графиков.</p>';
+      return;
+    }
+    const container = document.getElementById('chartsContainer');
+
+    subjects.forEach(subj => {
+      // Для каждого предмета собираем средние оценки каждого ученика (ученика идентифицируем по ФИО+класс)
+      const studentsOfSubject = students.filter(s => s.subject === subj);
+      // Группируем по ученику (ФИО + класс)
+      const studentMap = {};
+      studentsOfSubject.forEach(s => {
+        const key = `${s.fio} (${s.className})`;
+        if(!studentMap[key]) studentMap[key] = [];
+        studentMap[key].push(s.grade);
+      });
+
+      // Средняя оценка по ученику
+      const labels = Object.keys(studentMap);
+      const avgGrades = labels.map(key => {
+        const grades = studentMap[key];
+        const avg = grades.reduce((a,b) => a+b,0) / grades.length;
+        return +avg.toFixed(2);
+      });
+
+      // Создаем контейнер для графика
+      const chartDiv = document.createElement('div');
+      chartDiv.className = 'chart-container';
+      chartDiv.innerHTML = `<h4>Средняя оценка по ученикам: ${escapeHTML(subj)}</h4><canvas id="chart_${subj.replace(/\W/g,'_')}"></canvas>`;
+      container.appendChild(chartDiv);
+
+      const ctx = chartDiv.querySelector('canvas').getContext('2d');
+      const chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Средняя оценка',
+            data: avgGrades,
+            backgroundColor: 'rgba(230, 126, 34, 0.7)',
+            borderColor: 'rgba(230, 126, 34, 1)',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          scales: {
+            y: {
+              min: 1,
+              max: 5,
+              ticks: {
+                stepSize: 1
+              },
+              title: {
+                display: true,
+                text: 'Оценка'
+              }
+            },
+            x: {
+              title: {
+                display: true,
+                text: 'Ученик (ФИО и класс)'
+              }
+            }
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: ctx => `Средняя оценка: ${ctx.parsed.y}`
+              }
+            }
+          },
+          responsive: true,
+          maintainAspectRatio: false
+        }
+      });
+      chartInstances.push(chart);
+    });
+  }
+
+  // --- Сохранение журнала в файл CSV ---
+  function saveJournal() {
+    if(students.length === 0) {
+      alert('Журнал пуст!');
+      return;
+    }
+    downloadJournalCSV();
+  }
+
+  // --- Инициализация ---
+  updateFilters();
+  renderUploadTable();
+  renderJournalTable();
+
+</script>
+
+
+</body></html>
